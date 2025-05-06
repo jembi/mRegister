@@ -1,0 +1,604 @@
+{
+  "resourceType": "Questionnaire",
+  "id": "HIV.D4ScreenForTb",
+  "meta": {
+    "profile": [
+      "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-extr-smap",
+      "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-shareablequestionnaire",
+      "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-publishablequestionnaire"
+    ]
+  },
+  "language": "en",
+  "url": "http://smart.who.int/hiv/Questionnaire/HIV.D4ScreenForTb",
+  "version": "0.4.3",
+  "title": "Screen for TB",
+  "status": "draft",
+  "contained": [
+    {
+      "resourceType": "ValueSet",
+      "id": "HIV.D.DE956",
+      "meta": {
+        "profile": [
+          "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-shareablevalueset",
+          "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-publishablevalueset",
+          "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-computablevalueset"
+        ]
+      },
+      "url": "http://smart.who.int/hiv/ValueSet/HIV.D.DE956",
+      "version": "0.4.3",
+      "name": "HIVDDE956",
+      "title": "TB screening algorithm ValueSet",
+      "status": "active",
+      "experimental": true,
+      "date": "2025-03-14T13:53:11+00:00",
+      "publisher": "WHO",
+      "contact": [
+        {
+          "name": "WHO",
+          "telecom": [
+            {
+              "system": "url",
+              "value": "http://who.int"
+            }
+          ]
+        }
+      ],
+      "description": "Value set of screening algorithm selected for screening activities",
+      "compose": {
+        "include": [
+          {
+            "system": "http://smart.who.int/hiv/CodeSystem/HIVConcepts",
+            "concept": [
+              {
+                "code": "HIV.D.DE957",
+                "display": "Screening with cough"
+              },
+              {
+                "code": "HIV.D.DE958",
+                "display": "Screening with any TB symptom"
+              },
+              {
+                "code": "HIV.D.DE959",
+                "display": "W4SS single screening algorithm"
+              },
+              {
+                "code": "HIV.D.DE960",
+                "display": "CRP single screening algorithm"
+              },
+              {
+                "code": "HIV.D.DE961",
+                "display": "CXR single screening algorithm"
+              },
+              {
+                "code": "HIV.D.DE962",
+                "display": "Parallel screening algorithm with W4SS and CRP"
+              },
+              {
+                "code": "HIV.D.DE963",
+                "display": "Sequential positive screening algorithm with W4SS and CRP"
+              },
+              {
+                "code": "HIV.D.DE964",
+                "display": "Sequential negative screening algorithm with W4SS and CRP"
+              },
+              {
+                "code": "HIV.D.DE965",
+                "display": "Parallel screening algorithm with W4SS and CXR"
+              },
+              {
+                "code": "HIV.D.DE966",
+                "display": "Sequential positive screening algorithm with W4SS and CXR"
+              },
+              {
+                "code": "HIV.D.DE967",
+                "display": "Sequential negative screening algorithm with W4SS and CXR"
+              },
+              {
+                "code": "HIV.D.DE968",
+                "display": "Screening with mWRD"
+              },
+              {
+                "code": "HIV.D.DE969",
+                "display": "Clinical assessment"
+              },
+              {
+                "code": "HIV.D.DE970",
+                "display": "Other TB screening algorithm"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "resourceType": "ValueSet",
+      "id": "HIV.D.DE973",
+      "meta": {
+        "profile": [
+          "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-shareablevalueset",
+          "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-publishablevalueset",
+          "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-computablevalueset"
+        ]
+      },
+      "url": "http://smart.who.int/hiv/ValueSet/HIV.D.DE973",
+      "version": "0.4.3",
+      "name": "HIVDDE973",
+      "title": "Symptoms of TB ValueSet",
+      "status": "active",
+      "experimental": true,
+      "date": "2025-03-14T13:53:11+00:00",
+      "publisher": "WHO",
+      "contact": [
+        {
+          "name": "WHO",
+          "telecom": [
+            {
+              "system": "url",
+              "value": "http://who.int"
+            }
+          ]
+        }
+      ],
+      "description": "Value set of symptoms that may indicate TB disease in clients living with HIV, based on a clinical algorithm",
+      "compose": {
+        "include": [
+          {
+            "system": "http://smart.who.int/hiv/CodeSystem/HIVConcepts",
+            "concept": [
+              {
+                "code": "HIV.D.DE974",
+                "display": "Current cough"
+              },
+              {
+                "code": "HIV.D.DE975",
+                "display": "Prolonged cough (>=2w)"
+              },
+              {
+                "code": "HIV.D.DE976",
+                "display": "Fever of 39 °C or greater"
+              },
+              {
+                "code": "HIV.D.DE977",
+                "display": "Weight loss (reported)"
+              },
+              {
+                "code": "HIV.D.DE978",
+                "display": "Night sweats"
+              },
+              {
+                "code": "HIV.D.DE979",
+                "display": "Poor weight gain"
+              },
+              {
+                "code": "HIV.D.DE980",
+                "display": "Reduced playfulness"
+              },
+              {
+                "code": "HIV.D.DE981",
+                "display": "Chest pain"
+              },
+              {
+                "code": "HIV.D.DE982",
+                "display": "Haemoptysis"
+              },
+              {
+                "code": "HIV.D.DE983",
+                "display": "Lethargy"
+              },
+              {
+                "code": "HIV.D.DE984"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "resourceType": "ValueSet",
+      "id": "HIV.D.DE986",
+      "meta": {
+        "profile": [
+          "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-shareablevalueset",
+          "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-publishablevalueset",
+          "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-computablevalueset"
+        ]
+      },
+      "url": "http://smart.who.int/hiv/ValueSet/HIV.D.DE986",
+      "version": "0.4.3",
+      "name": "HIVDDE986",
+      "title": "TB screening result ValueSet",
+      "status": "active",
+      "experimental": true,
+      "date": "2025-03-14T13:53:11+00:00",
+      "publisher": "WHO",
+      "contact": [
+        {
+          "name": "WHO",
+          "telecom": [
+            {
+              "system": "url",
+              "value": "http://who.int"
+            }
+          ]
+        }
+      ],
+      "description": "Value set of record the result of the tuberculosis (TB) screening",
+      "compose": {
+        "include": [
+          {
+            "system": "http://smart.who.int/hiv/CodeSystem/HIVConcepts",
+            "concept": [
+              {
+                "code": "HIV.D.DE987",
+                "display": "Screen positive for TB"
+              },
+              {
+                "code": "HIV.D.DE988",
+                "display": "Screen negative for TB"
+              },
+              {
+                "code": "HIV.D.DE989",
+                "display": "Inconclusive"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "resourceType": "ValueSet",
+      "id": "HIV.D.DE992",
+      "meta": {
+        "profile": [
+          "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-shareablevalueset",
+          "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-publishablevalueset",
+          "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-computablevalueset"
+        ]
+      },
+      "url": "http://smart.who.int/hiv/ValueSet/HIV.D.DE992",
+      "version": "0.4.3",
+      "name": "HIVDDE992",
+      "title": "TB diagnostic test category ValueSet",
+      "status": "active",
+      "experimental": true,
+      "date": "2025-03-14T13:53:11+00:00",
+      "publisher": "WHO",
+      "contact": [
+        {
+          "name": "WHO",
+          "telecom": [
+            {
+              "system": "url",
+              "value": "http://who.int"
+            }
+          ]
+        }
+      ],
+      "description": "Value set of the type of diagnostic test performed to detect tuberculosis (TB) disease",
+      "compose": {
+        "include": [
+          {
+            "system": "http://smart.who.int/hiv/CodeSystem/HIVConcepts",
+            "concept": [
+              {
+                "code": "HIV.D.DE993",
+                "display": "LF-LAM"
+              },
+              {
+                "code": "HIV.D.DE994",
+                "display": "mWRD test for TB"
+              },
+              {
+                "code": "HIV.D.DE995",
+                "display": "Microscopy - Sputum acid-fast bacilli (AFB)"
+              },
+              {
+                "code": "HIV.D.DE996",
+                "display": "TB Culture"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "resourceType": "ValueSet",
+      "id": "HIV.D.DE1028",
+      "meta": {
+        "profile": [
+          "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-shareablevalueset",
+          "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-publishablevalueset",
+          "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-computablevalueset"
+        ]
+      },
+      "url": "http://smart.who.int/hiv/ValueSet/HIV.D.DE1028",
+      "version": "0.4.3",
+      "name": "HIVDDE1028",
+      "title": "TPT regimen type ValueSet",
+      "status": "active",
+      "experimental": true,
+      "date": "2025-03-14T13:53:11+00:00",
+      "publisher": "WHO",
+      "contact": [
+        {
+          "name": "WHO",
+          "telecom": [
+            {
+              "system": "url",
+              "value": "http://who.int"
+            }
+          ]
+        }
+      ],
+      "description": "Value set of type of TPT regimen the client is currently on",
+      "compose": {
+        "include": [
+          {
+            "system": "http://smart.who.int/hiv/CodeSystem/HIVConcepts",
+            "concept": [
+              {
+                "code": "HIV.D.DE1029",
+                "display": "3HP"
+              },
+              {
+                "code": "HIV.D.DE1030",
+                "display": "1HP"
+              },
+              {
+                "code": "HIV.D.DE1031",
+                "display": "6H"
+              },
+              {
+                "code": "HIV.D.DE1032",
+                "display": "Six months of levofloxacin daily"
+              },
+              {
+                "code": "HIV.D.DE1033",
+                "display": "Other TB preventive treatment (TPT) regimen"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "resourceType": "ValueSet",
+      "id": "HIV.D.DE1034",
+      "meta": {
+        "profile": [
+          "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-shareablevalueset",
+          "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-publishablevalueset",
+          "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-computablevalueset"
+        ]
+      },
+      "url": "http://smart.who.int/hiv/ValueSet/HIV.D.DE1034",
+      "version": "0.4.3",
+      "name": "HIVDDE1034",
+      "title": "TB preventive treatment (TPT) status ValueSet",
+      "status": "active",
+      "experimental": true,
+      "date": "2025-03-14T13:53:11+00:00",
+      "publisher": "WHO",
+      "contact": [
+        {
+          "name": "WHO",
+          "telecom": [
+            {
+              "system": "url",
+              "value": "http://who.int"
+            }
+          ]
+        }
+      ],
+      "description": "Value set of indicates the current status of TB preventive treatment (TPT)",
+      "compose": {
+        "include": [
+          {
+            "system": "http://smart.who.int/hiv/CodeSystem/HIVConcepts",
+            "concept": [
+              {
+                "code": "HIV.D.DE1035",
+                "display": "Not started"
+              },
+              {
+                "code": "HIV.D.DE1036",
+                "display": "On TPT"
+              },
+              {
+                "code": "HIV.D.DE1037",
+                "display": "On TPT with interruptions"
+              },
+              {
+                "code": "HIV.D.DE1038",
+                "display": "On hold"
+              },
+              {
+                "code": "HIV.D.DE1039",
+                "display": "Completed"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "experimental": true,
+  "subjectType": [
+    "Patient"
+  ],
+  "date": "2025-03-14T13:53:11+00:00",
+  "publisher": "WHO",
+  "contact": [
+    {
+      "name": "WHO",
+      "telecom": [
+        {
+          "system": "url",
+          "value": "http://who.int"
+        }
+      ]
+    }
+  ],
+  "description": "Questionnaire for screen for TB",
+  "item": [
+    {
+      "id": "HIV.D.DE956",
+      "linkId": "HIV.D.DE956",
+      "text": "TB screening algorithm",
+      "type": "choice",
+      "required": false,
+      "repeats": false,
+      "readOnly": false,
+      "answerValueSet": "#HIV.D.DE956"
+    },
+    {
+      "id": "HIV.D.DE971",
+      "linkId": "HIV.D.DE971",
+      "text": "Other TB screening algorithm (specify)",
+      "type": "string",
+      "required": false,
+      "repeats": false,
+      "readOnly": false
+    },
+    {
+      "id": "HIV.D.DE972",
+      "linkId": "HIV.D.DE972",
+      "text": "TB screening conducted",
+      "type": "boolean",
+      "required": false,
+      "repeats": false,
+      "readOnly": false
+    },
+    {
+      "id": "HIV.D.DE973",
+      "linkId": "HIV.D.DE973",
+      "text": "Symptoms of TB",
+      "type": "choice",
+      "required": false,
+      "repeats": false,
+      "readOnly": false,
+      "answerValueSet": "#HIV.D.DE973"
+    },
+    {
+      "id": "HIV.D.DE985",
+      "linkId": "HIV.D.DE985",
+      "text": "History of contact with a person with TB",
+      "type": "boolean",
+      "required": false,
+      "repeats": false,
+      "readOnly": false
+    },
+    {
+      "id": "HIV.D.DE986",
+      "linkId": "HIV.D.DE986",
+      "text": "TB screening result",
+      "type": "choice",
+      "required": false,
+      "repeats": false,
+      "readOnly": false,
+      "answerValueSet": "#HIV.D.DE986"
+    },
+    {
+      "id": "HIV.D.DE990",
+      "linkId": "HIV.D.DE990",
+      "text": "TB screening date",
+      "type": "date",
+      "required": false,
+      "repeats": false,
+      "readOnly": false
+    },
+    {
+      "id": "HIV.D.DE991",
+      "linkId": "HIV.D.DE991",
+      "text": "TB screening result date",
+      "type": "date",
+      "required": false,
+      "repeats": false,
+      "readOnly": false
+    },
+    {
+      "id": "HIV.D.DE992",
+      "linkId": "HIV.D.DE992",
+      "text": "TB diagnostic test category",
+      "type": "choice",
+      "required": false,
+      "repeats": false,
+      "readOnly": false,
+      "answerValueSet": "#HIV.D.DE992"
+    },
+    {
+      "id": "HIV.D.DE997",
+      "linkId": "HIV.D.DE997",
+      "text": "TB diagnostic test date",
+      "type": "date",
+      "required": false,
+      "repeats": false,
+      "readOnly": false
+    },
+    {
+      "id": "HIV.D.DE998",
+      "linkId": "HIV.D.DE998",
+      "text": "Test sample collection date",
+      "type": "date",
+      "required": false,
+      "repeats": false,
+      "readOnly": false
+    },
+    {
+      "id": "HIV.D.DE999",
+      "linkId": "HIV.D.DE999",
+      "text": "TB diagnostic test result date",
+      "type": "date",
+      "required": false,
+      "repeats": false,
+      "readOnly": false
+    },
+    {
+      "id": "HIV.D.DE1025",
+      "linkId": "HIV.D.DE1025",
+      "text": "C reactive protein test date",
+      "type": "date",
+      "required": false,
+      "repeats": false,
+      "readOnly": false
+    },
+    {
+      "id": "HIV.D.DE1026",
+      "linkId": "HIV.D.DE1026",
+      "text": "C reactive protein test result",
+      "type": "integer",
+      "required": false,
+      "repeats": false,
+      "readOnly": false
+    },
+    {
+      "id": "HIV.D.DE1027",
+      "linkId": "HIV.D.DE1027",
+      "text": "C reactive protein test result date",
+      "type": "date",
+      "required": false,
+      "repeats": false,
+      "readOnly": false
+    },
+    {
+      "id": "HIV.D.DE1028",
+      "linkId": "HIV.D.DE1028",
+      "text": "TPT regimen type",
+      "type": "choice",
+      "required": false,
+      "repeats": false,
+      "readOnly": false,
+      "answerValueSet": "#HIV.D.DE1028"
+    },
+    {
+      "id": "HIV.D.DE1034",
+      "linkId": "HIV.D.DE1034",
+      "text": "TB preventive treatment (TPT) status",
+      "type": "choice",
+      "required": false,
+      "repeats": false,
+      "readOnly": false,
+      "answerValueSet": "#HIV.D.DE1034"
+    }
+  ]
+}

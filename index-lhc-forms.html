@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>LHC-Forms FHIR R5 Example</title>
+  <link href="https://lhcforms-static.nlm.nih.gov/lforms-versions/36.3.2/webcomponent/styles.css" rel="stylesheet" />
+</head>
+
+<body>
+  <div id="myFormContainer"></div>
+
+  <script src="https://lhcforms-static.nlm.nih.gov/lforms-versions/36.3.2/webcomponent/assets/lib/zone.min.js"></script>
+  <script src="https://lhcforms-static.nlm.nih.gov/lforms-versions/36.3.2/webcomponent/lhc-forms.js"></script>
+  <script src="https://lhcforms-static.nlm.nih.gov/lforms-versions/36.3.2/fhir/R5/lformsFHIR.min.js"></script>
+
+  <script>
+    const BASE_QUESTIONNAIRE_URL = "./questionnaires";
+
+    function injectExpansionFromCompose(valueSet) {
+      if (!valueSet.expansion && valueSet.compose?.include?.length) {
+        valueSet.expansion = { contains: [] };
+        valueSet.compose.include.forEach(inc => {
+          (inc.concept || []).forEach(concept => {
+            valueSet.expansion.contains.push({
+              system: inc.system,
+              code: concept.code,
+              display: concept.display
+            });
+          });
+        });
+      }
+    }
+
+    let lfData;
+
+    document.addEventListener('DOMContentLoaded', function () {
+      fetch(`${BASE_QUESTIONNAIRE_URL}/questionnaire1-schema.json`)
+        .then(response => response.json())
+        .then(fhirQuestionnaire => {
+          if (fhirQuestionnaire.contained) {
+            for (let res of fhirQuestionnaire.contained) {
+              if (res.resourceType === 'ValueSet') {
+                injectExpansionFromCompose(res);
+              }
+            }
+          }
+
+          // Ensure the FHIR context is set before loading resources
+          LForms.Util.setFHIRContext(fhirQuestionnaire);
+
+          // Convert the FHIR Questionnaire to LHC Form data
+          lfData = LForms.Util.convertFHIRQuestionnaireToLForms(fhirQuestionnaire, 'R5');
+          LForms.Util.addFormToPage(lfData, 'myFormContainer');
+
+          // Create a submit button
+          const submitBtn = document.createElement('button');
+          submitBtn.type = 'button'; // It will be a regular button
+          submitBtn.innerText = 'Submit Form';
+          submitBtn.classList.add('btn', 'btn-primary'); // Optional: Add some styles
+
+          // Append the button to the form container
+          const formContainer = document.getElementById('myFormContainer');
+          formContainer.appendChild(submitBtn);
+
+          // Handle the submit button click
+          submitBtn.addEventListener('click', function () {
+            try {
+              const formElement = document.querySelector('#myFormContainer > div'); // Actual form DOM node
+              const formData = LForms.Util.getFormData(formElement);
+
+              const answeredItems = [];
+
+              formData.items.forEach(item => {
+                if (item.value !== undefined && item.value !== null && item.value !== '') {
+                  answeredItems.push({
+                    code: item.questionCode,
+                    value: item.value
+                  });
+                }
+              });
+
+              console.log('Answered items:', answeredItems);
+
+              //sendDataToServer(formData); //WhatsApp?
+            } catch (error) {
+              console.error('Error gathering form data:', error);
+            }
+          });
+        });
+    });
+
+    // Example function for sending data to a server
+    function sendDataToServer(data) {
+      fetch('/submit-form', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      })
+        .then(response => response.json())
+        .then(data => {
+          console.log('Form data successfully submitted', data);
+        })
+        .catch(error => {
+          console.error('Error submitting form data', error);
+        });
+    }
+  </script>
+</body>
+
+</html>
