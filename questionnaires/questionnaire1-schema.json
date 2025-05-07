@@ -458,7 +458,17 @@
       "type": "string",
       "required": false,
       "repeats": false,
-      "readOnly": false
+      "readOnly": false,
+      "enableWhen": [
+        {
+          "question": "HIV.D.DE956",
+          "operator": "=",
+          "answerCoding": {
+            "system": "http://smart.who.int/hiv/CodeSystem/HIVConcepts",
+            "code": "HIV.D.DE970"
+          }
+        }
+      ]
     },
     {
       "id": "HIV.D.DE972",
@@ -487,6 +497,17 @@
       "required": false,
       "repeats": false,
       "readOnly": false
+    },
+    {
+      "linkId": "HIV.D4ScreenForTb.History",
+      "type": "group",
+      "enableWhen": [
+        {
+          "question": "HIV.D.DE985",
+          "operator": "=",
+          "answerBoolean": true
+        }
+      ]
     },
     {
       "id": "HIV.D.DE986",

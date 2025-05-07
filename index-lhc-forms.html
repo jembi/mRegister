@@ -31,65 +31,79 @@
       }
     }
 
+    // 🔁 Recursive function to collect all answers, including from nested items
+    function collectAnswers(items, answeredItems = []) {
+      items.forEach(item => {
+        if (item.value !== undefined && item.value !== null && item.value !== '') {
+          answeredItems.push({
+            code: item.questionCode,
+            value: item.value
+          });
+        }
+        if (item.items && item.items.length > 0) {
+          collectAnswers(item.items, answeredItems);
+        }
+      });
+      return answeredItems;
+    }
+
     let lfData;
 
     document.addEventListener('DOMContentLoaded', function () {
-      fetch(`${BASE_QUESTIONNAIRE_URL}/questionnaire1-schema.json`)
-        .then(response => response.json())
-        .then(fhirQuestionnaire => {
-          if (fhirQuestionnaire.contained) {
-            for (let res of fhirQuestionnaire.contained) {
+      // Fetch parent and child questionnaires in parallel
+      Promise.all([
+        fetch(`${BASE_QUESTIONNAIRE_URL}/questionnaire1-schema.json`).then(res => res.json()),
+        fetch(`${BASE_QUESTIONNAIRE_URL}/questionnaire2-schema.json`).then(res => res.json())
+      ])
+        .then(([parentQ, childQ]) => {
+          // Inject ValueSet expansions if needed
+          if (parentQ.contained) {
+            for (let res of parentQ.contained) {
               if (res.resourceType === 'ValueSet') {
                 injectExpansionFromCompose(res);
               }
             }
           }
 
-          // Ensure the FHIR context is set before loading resources
-          LForms.Util.setFHIRContext(fhirQuestionnaire);
+          // Find and merge the child questionnaire items
+          const placeholderItem = parentQ.item.find(it => it.linkId === 'HIV.D4ScreenForTb.History');
+          if (placeholderItem && Array.isArray(childQ.item)) {
+            placeholderItem.item = childQ.item;
+          }
 
-          // Convert the FHIR Questionnaire to LHC Form data
-          lfData = LForms.Util.convertFHIRQuestionnaireToLForms(fhirQuestionnaire, 'R5');
+          // Set FHIR context and convert
+          LForms.Util.setFHIRContext(parentQ);
+          lfData = LForms.Util.convertFHIRQuestionnaireToLForms(parentQ, 'R5');
           LForms.Util.addFormToPage(lfData, 'myFormContainer');
 
-          // Create a submit button
+          // Submit button
           const submitBtn = document.createElement('button');
-          submitBtn.type = 'button'; // It will be a regular button
+          submitBtn.type = 'button';
           submitBtn.innerText = 'Submit Form';
-          submitBtn.classList.add('btn', 'btn-primary'); // Optional: Add some styles
-
-          // Append the button to the form container
+          submitBtn.classList.add('btn', 'btn-primary');
           const formContainer = document.getElementById('myFormContainer');
           formContainer.appendChild(submitBtn);
 
-          // Handle the submit button click
           submitBtn.addEventListener('click', function () {
             try {
-              const formElement = document.querySelector('#myFormContainer > div'); // Actual form DOM node
+              const formElement = document.querySelector('#myFormContainer > div');
               const formData = LForms.Util.getFormData(formElement);
 
-              const answeredItems = [];
-
-              formData.items.forEach(item => {
-                if (item.value !== undefined && item.value !== null && item.value !== '') {
-                  answeredItems.push({
-                    code: item.questionCode,
-                    value: item.value
-                  });
-                }
-              });
-
+              // ✅ Use recursive function to gather all answers
+              const answeredItems = collectAnswers(formData.items || []);
               console.log('Answered items:', answeredItems);
 
-              //sendDataToServer(formData); //WhatsApp?
+              //sendDataToServer(formData);
             } catch (error) {
               console.error('Error gathering form data:', error);
             }
           });
+        })
+        .catch(error => {
+          console.error('Error loading questionnaires:', error);
         });
     });
 
-    // Example function for sending data to a server
     function sendDataToServer(data) {
       fetch('/submit-form', {
         method: 'POST',
