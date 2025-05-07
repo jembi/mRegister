@@ -1,0 +1,47 @@
+{
+  "resourceType": "Questionnaire",
+  "id": "HIV.D4ScreenForTb.History",
+  "language": "en",
+  "url": "http://smart.who.int/hiv/Questionnaire/HIV.D4ScreenForTb.History",
+  "version": "0.4.3",
+  "title": "History of contact with a person with TB",
+  "status": "draft",
+  "experimental": true,
+  "subjectType": [
+    "Patient"
+  ],
+  "date": "2025-03-14T13:53:11+00:00",
+  "publisher": "WHO",
+  "contact": [
+    {
+      "name": "WHO",
+      "telecom": [
+        {
+          "system": "url",
+          "value": "http://who.int"
+        }
+      ]
+    }
+  ],
+  "description": "Questionnaire for history of contact with a person with TB",
+  "item": [
+    {
+      "id": "HIV.D.DE985.Frequency",
+      "linkId": "HIV.D.DE985.Frequency",
+      "text": "How often",
+      "type": "integer",
+      "required": true,
+      "repeats": false,
+      "readOnly": false
+    },
+    {
+      "id": "HIV.D.DE985.Relationship",
+      "linkId": "HIV.D.DE985.Relationship",
+      "text": "Relationship with contact",
+      "type": "string",
+      "required": true,
+      "repeats": false,
+      "readOnly": false
+    }
+  ]
+}
