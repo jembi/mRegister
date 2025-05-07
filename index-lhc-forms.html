@@ -31,7 +31,7 @@
       }
     }
 
-    // 🔁 Recursive function to collect all answers, including from nested items
+    // Recursive function to collect all answers, including from nested items
     function collectAnswers(items, answeredItems = []) {
       items.forEach(item => {
         if (item.value !== undefined && item.value !== null && item.value !== '') {
@@ -89,7 +89,7 @@
               const formElement = document.querySelector('#myFormContainer > div');
               const formData = LForms.Util.getFormData(formElement);
 
-              // ✅ Use recursive function to gather all answers
+              //Use recursive function to gather all answers
               const answeredItems = collectAnswers(formData.items || []);
               console.log('Answered items:', answeredItems);
 
