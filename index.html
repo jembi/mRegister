@@ -114,14 +114,23 @@
     function sendDataToServer(theFormElement) {
       const questionnaireResponse = LForms.Util.getFormData(theFormElement, 'QuestionnaireResponse', 'R5');
 
-      fetch('http://localhost:9000', {
+      const username = 'RichardTestClient'; // your actual client ID
+      const password = 'OpenHIM123!'; // your actual password
+      const basicAuth = 'Basic ' + btoa(username + ':' + password);
+
+      fetch('https://localhost:8080/provider', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': basicAuth
         },
         body: JSON.stringify(questionnaireResponse)
       })
-        .then(response => response.json())
+        .then(async response => {
+          const text = await response.text();
+          if (!response.ok) throw new Error(`HTTP ${response.status} - ${text}`);
+          return text;
+        })
         .then(data => console.log('Submission successful:', data))
         .catch(error => console.error('Error submitting:', error));
     }
