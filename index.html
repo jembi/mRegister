@@ -98,14 +98,9 @@
           submitBtn.addEventListener('click', function () {
             try {
               const formElement = document.querySelector('#myFormContainer > div');
-              const formData = LForms.Util.getFormData(formElement);
 
-              // Use recursive function to gather all answers
-              const answeredItems = collectAnswers(formData.items || [], parentQ.item || []);
-              console.log('Answered items:', answeredItems);
+              sendDataToServer(formElement);
 
-              sendDataToWhatsApp(answeredItems);
-              //sendDataToServer(answeredItems);
             } catch (error) {
               console.error('Error gathering form data:', error);
             }
@@ -116,72 +111,19 @@
         });
     });
 
-    function sendDataToWhatsApp(data) {
-      const formattedData = {};
+    function sendDataToServer(theFormElement) {
+      const questionnaireResponse = LForms.Util.getFormData(theFormElement, 'QuestionnaireResponse', 'R5');
 
-      data.forEach(item => {
-        let value;
-
-        if (Array.isArray(item.value)) {
-          // Array of values (e.g., checkbox with multiple codings)
-          value = item.value.map(val => {
-            if (typeof val === 'object' && val.code && val.system) {
-              return {
-                code: val.code,
-                display: val.display || '',
-                system: val.system
-              };
-            }
-            return val; // fallback for unexpected structures
-          });
-        } else if (typeof item.value === 'object' && item.value.code && item.value.system) {
-          // Single Coding
-          value = {
-            code: item.value.code,
-            display: item.value.display || '',
-            system: item.value.system
-          };
-        } else {
-          // Primitive types like string, number, boolean
-          value = item.value;
-        }
-
-        formattedData[item.code] = {
-          text: item.text,
-          value: value
-        };
-      });
-
-      // Convert the formatted data into a nicely formatted JSON string
-      const jsonMessage = JSON.stringify(formattedData, null, 2);
-
-      // WhatsApp number
-      const phoneNumber = '27832791564'; // Replace with your number
-      const encodedMessage = encodeURIComponent(jsonMessage);
-      const whatsappURL = `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${encodedMessage}`;
-
-      // Open WhatsApp in a new tab
-      window.open(whatsappURL, '_blank');
-    }
-
-
-
-
-    function sendDataToServer(data) {
-      fetch('/submit-form', {
+      fetch('https://your-server.com/fhir/QuestionnaireResponse', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(questionnaireResponse)
       })
         .then(response => response.json())
-        .then(data => {
-          console.log('Form data successfully submitted', data);
-        })
-        .catch(error => {
-          console.error('Error submitting form data', error);
-        });
+        .then(data => console.log('Submission successful:', data))
+        .catch(error => console.error('Error submitting:', error));
     }
   </script>
 </body>
