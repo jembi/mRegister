@@ -114,7 +114,7 @@
     function sendDataToServer(theFormElement) {
       const questionnaireResponse = LForms.Util.getFormData(theFormElement, 'QuestionnaireResponse', 'R5');
 
-      fetch('https://your-server.com/fhir/QuestionnaireResponse', {
+      fetch('http://localhost:9000', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
