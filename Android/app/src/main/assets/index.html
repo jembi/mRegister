@@ -14,7 +14,6 @@
 <script src="lformsFHIR.min.js"></script>
 
 <script>
-  // Use the special WebViewAssetLoader base URL
   const BASE_QUESTIONNAIRE_URL = "https://appassets.androidplatform.net/assets/questionnaires";
 
   function loadLocalJson(path, callback) {
@@ -67,7 +66,6 @@
     loadLocalJson(`${BASE_QUESTIONNAIRE_URL}/questionnaire1-schema.json`, function (parentQ) {
       loadLocalJson(`${BASE_QUESTIONNAIRE_URL}/questionnaire2-schema.json`, function (childQ) {
 
-        // Handle ValueSets
         if (parentQ.contained) {
           for (let res of parentQ.contained) {
             if (res.resourceType === 'ValueSet') {
@@ -76,18 +74,15 @@
           }
         }
 
-        // Merge child into parent at placeholder
         const placeholderItem = parentQ.item.find(it => it.linkId === 'HIV.D4ScreenForTb.History');
         if (placeholderItem && Array.isArray(childQ.item)) {
           placeholderItem.item = childQ.item;
         }
 
-        // Convert and render
         LForms.Util.setFHIRContext(parentQ);
         const lfData = LForms.Util.convertFHIRQuestionnaireToLForms(parentQ, 'R5');
         LForms.Util.addFormToPage(lfData, 'myFormContainer');
 
-        // Add submit button
         const submitBtn = document.createElement('button');
         submitBtn.type = 'button';
         submitBtn.innerText = 'Submit Form';
@@ -102,7 +97,6 @@
             console.log('Answered items:', JSON.stringify(answeredItems, null, 2));
 
             sendDataToWhatsApp(answeredItems);
-
           } catch (error) {
             console.error('Error collecting form data:', error);
           }
@@ -112,34 +106,48 @@
   });
 
   function sendDataToWhatsApp(data) {
-  let message = 'Form Submission:\n';
-  data.forEach(item => {
-    let displayValue = '';
+    const formattedData = {};
 
-    if (Array.isArray(item.value)) {
-      displayValue = item.value.map(val => val.display || val.code || val).join(', ');
-    } else if (typeof item.value === 'object') {
-      displayValue = item.value.display || item.value.code || JSON.stringify(item.value);
+    data.forEach(item => {
+      let value;
+
+      if (Array.isArray(item.value)) {
+        value = item.value.map(val => {
+          if (typeof val === 'object' && val.code && val.system) {
+            return {
+              code: val.code,
+              display: val.display || '',
+              system: val.system
+            };
+          }
+          return val;
+        });
+      } else if (typeof item.value === 'object' && item.value.code && item.value.system) {
+        value = {
+          code: item.value.code,
+          display: item.value.display || '',
+          system: item.value.system
+        };
+      } else {
+        value = item.value;
+      }
+
+      formattedData[item.code] = {
+        value: value
+      };
+    });
+
+    const jsonMessage = JSON.stringify(formattedData, null, 2);
+    const phoneNumber = '27832791564';
+    const encodedMessage = encodeURIComponent("Form Submission:\n" + jsonMessage);
+    const whatsappURL = `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${encodedMessage}`;
+
+    if (window.AndroidInterface) {
+      window.AndroidInterface.openWhatsApp(whatsappURL);
     } else {
-      displayValue = item.value;
+      alert('Android interface not available.');
     }
-
-    message += `• ${item.code}: ${displayValue}\n`;
-  });
-
-  const phoneNumber = '27832791564';
-  const encodedMessage = encodeURIComponent(message);
-  const whatsappURL = `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${encodedMessage}`;
-
-  // Send the URL to the Android app
-  if (window.AndroidInterface) {
-    window.AndroidInterface.openWhatsApp(whatsappURL);
-  } else {
-    alert('Android interface not available.');
   }
-}
-
-
 </script>
 </body>
 </html>
