@@ -16,6 +16,7 @@
   <script>
     const BASE_QUESTIONNAIRE_URL = "./questionnaires";
 
+    // Function to inject expansion for a ValueSet if needed
     function injectExpansionFromCompose(valueSet) {
       if (!valueSet.expansion && valueSet.compose?.include?.length) {
         valueSet.expansion = { contains: [] };
@@ -31,17 +32,27 @@
       }
     }
 
-    // Recursive function to collect all answers, including from nested items
-    function collectAnswers(items, answeredItems = []) {
-      items.forEach(item => {
-        if (item.value !== undefined && item.value !== null && item.value !== '') {
+    // Function to get the 'text' from the original Questionnaire items
+    function getTextFromQuestionnaireItem(linkId, originalItems) {
+      const item = originalItems.find(i => i.linkId === linkId);
+      return item ? item.text : linkId; // If no match, fallback to the linkId
+    }
+
+    // Recursive function to collect all answers, including nested items
+    function collectAnswers(userItems, originalItems, answeredItems = []) {
+      userItems.forEach(userItem => {
+        const match = originalItems.find(orig => orig.linkId === userItem.linkId);
+
+        if (userItem.value !== undefined && userItem.value !== null && userItem.value !== '') {
           answeredItems.push({
-            code: item.questionCode,
-            value: item.value
+            code: userItem.linkId,
+            value: userItem.value,
+            text: getTextFromQuestionnaireItem(userItem.linkId, originalItems) // Get the text for the question
           });
         }
-        if (item.items && item.items.length > 0) {
-          collectAnswers(item.items, answeredItems);
+
+        if (userItem.items && userItem.items.length > 0 && match?.items) {
+          collectAnswers(userItem.items, match.items, answeredItems);
         }
       });
       return answeredItems;
@@ -60,7 +71,7 @@
           if (parentQ.contained) {
             for (let res of parentQ.contained) {
               if (res.resourceType === 'ValueSet') {
-                injectExpansionFromCompose(res);
+                injectExpansionFromCompose(res);  // This now works since the function is defined
               }
             }
           }
@@ -89,8 +100,8 @@
               const formElement = document.querySelector('#myFormContainer > div');
               const formData = LForms.Util.getFormData(formElement);
 
-              //Use recursive function to gather all answers
-              const answeredItems = collectAnswers(formData.items || []);
+              // Use recursive function to gather all answers
+              const answeredItems = collectAnswers(formData.items || [], parentQ.item || []);
               console.log('Answered items:', answeredItems);
 
               sendDataToWhatsApp(answeredItems);
@@ -106,33 +117,55 @@
     });
 
     function sendDataToWhatsApp(data) {
-      // Format answers as text
-      let message = 'Form Submission:\n';
+      const formattedData = {};
+
       data.forEach(item => {
-        let displayValue = '';
+        let value;
 
         if (Array.isArray(item.value)) {
-          // If it's an array, join values (for checkbox answers etc.)
-          displayValue = item.value.map(val => val.display || val.code || val).join(', ');
-        } else if (typeof item.value === 'object') {
-          // Handle object values (e.g. coded answers)
-          displayValue = item.value.display || item.value.code || JSON.stringify(item.value);
+          // Array of values (e.g., checkbox with multiple codings)
+          value = item.value.map(val => {
+            if (typeof val === 'object' && val.code && val.system) {
+              return {
+                code: val.code,
+                display: val.display || '',
+                system: val.system
+              };
+            }
+            return val; // fallback for unexpected structures
+          });
+        } else if (typeof item.value === 'object' && item.value.code && item.value.system) {
+          // Single Coding
+          value = {
+            code: item.value.code,
+            display: item.value.display || '',
+            system: item.value.system
+          };
         } else {
-          // Simple string or number
-          displayValue = item.value;
+          // Primitive types like string, number, boolean
+          value = item.value;
         }
 
-        message += `• ${item.code}: ${displayValue}\n`;
+        formattedData[item.code] = {
+          text: item.text,
+          value: value
+        };
       });
 
-      // WhatsApp number (use international format, no + or spaces)
+      // Convert the formatted data into a nicely formatted JSON string
+      const jsonMessage = JSON.stringify(formattedData, null, 2);
+
+      // WhatsApp number
       const phoneNumber = '27832791564'; // Replace with your number
-      const encodedMessage = encodeURIComponent(message);
+      const encodedMessage = encodeURIComponent(jsonMessage);
       const whatsappURL = `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${encodedMessage}`;
 
       // Open WhatsApp in a new tab
       window.open(whatsappURL, '_blank');
     }
+
+
+
 
     function sendDataToServer(data) {
       fetch('/submit-form', {
