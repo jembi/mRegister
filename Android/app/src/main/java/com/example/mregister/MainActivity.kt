@@ -1,23 +1,38 @@
 package com.example.mregister
 
+import android.content.ActivityNotFoundException
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.webkit.JavascriptInterface
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.webkit.WebViewAssetLoader
 
 class MainActivity : AppCompatActivity() {
+
+    inner class WebAppInterface {
+        @JavascriptInterface
+        fun openWhatsApp(url: String) {
+            try {
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                intent.setPackage("com.whatsapp") // Optional: open only in WhatsApp
+                startActivity(intent)
+            } catch (e: ActivityNotFoundException) {
+                Toast.makeText(this@MainActivity, "WhatsApp not installed", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         val webView = WebView(this)
         setContentView(webView)
 
-        // Enable JavaScript
-        webView.settings.javaScriptEnabled = true
-
-        // Allow loading from /assets/ via https://appassets.androidplatform.net/
         val assetLoader = WebViewAssetLoader.Builder()
             .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(this))
             .build()
@@ -26,6 +41,9 @@ class MainActivity : AppCompatActivity() {
             override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest) =
                 assetLoader.shouldInterceptRequest(request.url)
         }
+
+        webView.settings.javaScriptEnabled = true
+        webView.addJavascriptInterface(WebAppInterface(), "AndroidInterface")
 
         webView.loadUrl("https://appassets.androidplatform.net/assets/index.html")
     }

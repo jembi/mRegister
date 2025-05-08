@@ -93,7 +93,8 @@
               const answeredItems = collectAnswers(formData.items || []);
               console.log('Answered items:', answeredItems);
 
-              //sendDataToServer(formData);
+              sendDataToWhatsApp(answeredItems);
+              //sendDataToServer(answeredItems);
             } catch (error) {
               console.error('Error gathering form data:', error);
             }
@@ -103,6 +104,35 @@
           console.error('Error loading questionnaires:', error);
         });
     });
+
+    function sendDataToWhatsApp(data) {
+      // Format answers as text
+      let message = 'Form Submission:\n';
+      data.forEach(item => {
+        let displayValue = '';
+
+        if (Array.isArray(item.value)) {
+          // If it's an array, join values (for checkbox answers etc.)
+          displayValue = item.value.map(val => val.display || val.code || val).join(', ');
+        } else if (typeof item.value === 'object') {
+          // Handle object values (e.g. coded answers)
+          displayValue = item.value.display || item.value.code || JSON.stringify(item.value);
+        } else {
+          // Simple string or number
+          displayValue = item.value;
+        }
+
+        message += `• ${item.code}: ${displayValue}\n`;
+      });
+
+      // WhatsApp number (use international format, no + or spaces)
+      const phoneNumber = '27832791564'; // Replace with your number
+      const encodedMessage = encodeURIComponent(message);
+      const whatsappURL = `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${encodedMessage}`;
+
+      // Open WhatsApp in a new tab
+      window.open(whatsappURL, '_blank');
+    }
 
     function sendDataToServer(data) {
       fetch('/submit-form', {
