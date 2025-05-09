@@ -16,6 +16,7 @@
   <script>
     const BASE_QUESTIONNAIRE_URL = "./questionnaires";
 
+    // Function to inject expansion for a ValueSet if needed
     function injectExpansionFromCompose(valueSet) {
       if (!valueSet.expansion && valueSet.compose?.include?.length) {
         valueSet.expansion = { contains: [] };
@@ -31,17 +32,27 @@
       }
     }
 
-    // Recursive function to collect all answers, including from nested items
-    function collectAnswers(items, answeredItems = []) {
-      items.forEach(item => {
-        if (item.value !== undefined && item.value !== null && item.value !== '') {
+    // Function to get the 'text' from the original Questionnaire items
+    function getTextFromQuestionnaireItem(linkId, originalItems) {
+      const item = originalItems.find(i => i.linkId === linkId);
+      return item ? item.text : linkId; // If no match, fallback to the linkId
+    }
+
+    // Recursive function to collect all answers, including nested items
+    function collectAnswers(userItems, originalItems, answeredItems = []) {
+      userItems.forEach(userItem => {
+        const match = originalItems.find(orig => orig.linkId === userItem.linkId);
+
+        if (userItem.value !== undefined && userItem.value !== null && userItem.value !== '') {
           answeredItems.push({
-            code: item.questionCode,
-            value: item.value
+            code: userItem.linkId,
+            value: userItem.value,
+            text: getTextFromQuestionnaireItem(userItem.linkId, originalItems) // Get the text for the question
           });
         }
-        if (item.items && item.items.length > 0) {
-          collectAnswers(item.items, answeredItems);
+
+        if (userItem.items && userItem.items.length > 0 && match?.items) {
+          collectAnswers(userItem.items, match.items, answeredItems);
         }
       });
       return answeredItems;
@@ -60,7 +71,7 @@
           if (parentQ.contained) {
             for (let res of parentQ.contained) {
               if (res.resourceType === 'ValueSet') {
-                injectExpansionFromCompose(res);
+                injectExpansionFromCompose(res);  // This now works since the function is defined
               }
             }
           }
@@ -87,13 +98,9 @@
           submitBtn.addEventListener('click', function () {
             try {
               const formElement = document.querySelector('#myFormContainer > div');
-              const formData = LForms.Util.getFormData(formElement);
 
-              //Use recursive function to gather all answers
-              const answeredItems = collectAnswers(formData.items || []);
-              console.log('Answered items:', answeredItems);
+              sendDataToServer(formElement);
 
-              //sendDataToServer(formData);
             } catch (error) {
               console.error('Error gathering form data:', error);
             }
@@ -104,22 +111,172 @@
         });
     });
 
-    function sendDataToServer(data) {
-      fetch('/submit-form', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      })
-        .then(response => response.json())
-        .then(data => {
-          console.log('Form data successfully submitted', data);
+    function sendDataToServer(theFormElement) {
+      const userData = LForms.Util.getUserData(theFormElement, 'QuestionnaireResponse', 'R5');
+
+      // Log userData to inspect the structure
+      console.log('userData:', userData);
+
+      // Access the actual itemsData array inside the object
+      const itemsData = userData.itemsData;
+
+      // Log itemsData to verify it's an array
+      console.log('itemsData:', itemsData);
+
+      if (Array.isArray(itemsData)) {
+        // If itemsData is an array, proceed with transformation
+        const questionnaireResponse = transformToFHIRQuestionnaireResponse(itemsData);
+
+        // Send the QuestionnaireResponse to the FHIR server
+        fetch('http://localhost:5001/fhir', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/fhir+json',
+            'Authorization': 'Custom auth'
+          },
+          body: JSON.stringify(questionnaireResponse)
         })
-        .catch(error => {
-          console.error('Error submitting form data', error);
-        });
+          .then(async response => {
+            const text = await response.text();
+            if (!response.ok) throw new Error(`HTTP ${response.status} - ${text}`);
+            return text;
+          })
+          .then(data => console.log('Submission successful:', data))
+          .catch(error => console.error('Error submitting:', error));
+      } else {
+        console.error('Expected itemsData to be an array, but got:', typeof itemsData);
+        // Handle the case where itemsData is not an array (if necessary)
+      }
     }
+
+    // Function to transform the user data into a valid FHIR QuestionnaireResponse format
+    function processItem(item) {
+      if (!item || !item.questionCode) {
+        console.error('Invalid item:', item);
+        return null;
+      }
+
+      // If it's a group, recurse into its items
+      if (item.type === 'group' || item.items) {
+        const groupItem = {
+          linkId: item.questionCode,
+          item: []
+        };
+
+        if (item.items && Array.isArray(item.items)) {
+          for (const child of item.items) {
+            const processedChild = processItem(child);
+            if (processedChild) {
+              groupItem.item.push(processedChild);
+            }
+          }
+        }
+
+        return groupItem;
+      }
+
+      // Otherwise, it's a regular question with a value
+      const responseItem = {
+        linkId: item.questionCode,
+        answer: []
+      };
+
+      const val = item.value;
+
+      if (val && typeof val === 'object' && val.code && val.system) {
+        responseItem.answer.push({
+          valueCoding: {
+            code: val.code,
+            system: val.system,
+            display: val.text
+          }
+        });
+      } else if (typeof val === 'string') {
+        responseItem.answer.push({ valueString: val });
+      } else if (typeof val === 'boolean') {
+        responseItem.answer.push({ valueBoolean: val });
+      } else if (typeof val === 'number') {
+        responseItem.answer.push({ valueInteger: val });
+      } else if (val instanceof Date) {
+        responseItem.answer.push({ valueDate: val.toISOString().split('T')[0] });
+      } else {
+        console.warn('Unrecognized or missing value for item:', item);
+        return null;
+      }
+
+      return responseItem;
+    }
+
+
+    function transformToFHIRQuestionnaireResponse(itemsData) {
+      const questionnaireResponse = {
+        resourceType: "QuestionnaireResponse",
+        status: "completed",
+        authored: new Date().toISOString(),
+        item: []
+      };
+
+      const seenLinkIds = new Set();
+
+      function processItem(item) {
+        if (!item || !item.questionCode || seenLinkIds.has(item.questionCode)) {
+          return null; // Skip if already processed
+        }
+        seenLinkIds.add(item.questionCode);
+
+        if (item.items && Array.isArray(item.items)) {
+          const groupItem = {
+            linkId: item.questionCode,
+            item: item.items
+              .map(processItem)
+              .filter(Boolean)
+          };
+          return groupItem;
+        }
+
+        const responseItem = {
+          linkId: item.questionCode,
+          answer: []
+        };
+
+        const val = item.value;
+
+        if (val && typeof val === 'object' && val.code && val.system) {
+          responseItem.answer.push({
+            valueCoding: {
+              code: val.code,
+              system: val.system,
+              display: val.text
+            }
+          });
+        } else if (typeof val === 'string') {
+          responseItem.answer.push({ valueString: val });
+        } else if (typeof val === 'boolean') {
+          responseItem.answer.push({ valueBoolean: val });
+        } else if (typeof val === 'number') {
+          responseItem.answer.push({ valueInteger: val });
+        } else if (val instanceof Date) {
+          responseItem.answer.push({ valueDate: val.toISOString().split('T')[0] });
+        } else {
+          return null;
+        }
+
+        return responseItem;
+      }
+
+      questionnaireResponse.item = itemsData
+        .map(processItem)
+        .filter(Boolean);
+
+      return questionnaireResponse;
+    }
+
+
+
+
+
+
+
   </script>
 </body>
 
