@@ -1,8 +1,5 @@
 package com.example.mregister
 
-import android.content.ActivityNotFoundException
-import android.content.Intent
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -10,26 +7,60 @@ import android.webkit.*
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.webkit.WebViewAssetLoader
+import java.io.OutputStream
+import java.net.HttpURLConnection
+import java.net.URL
 
 class MainActivity : AppCompatActivity() {
 
     inner class WebAppInterface {
+
         @JavascriptInterface
-        fun openWhatsApp(url: String) {
-            try {
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                intent.setPackage("com.whatsapp") // Optional: restrict to WhatsApp only
-                startActivity(intent)
-            } catch (e: ActivityNotFoundException) {
-                Toast.makeText(this@MainActivity, "WhatsApp not installed", Toast.LENGTH_LONG).show()
-            }
+        fun submitFHIR(fhirJson: String) {
+            Thread {
+                try {
+                    val url = URL("http://192.168.100.21:5001/fhir")
+                    val connection = url.openConnection() as HttpURLConnection
+                    connection.requestMethod = "POST"
+                    connection.setRequestProperty("Content-Type", "application/fhir+json")
+                    connection.setRequestProperty("Authorization", "Custom auth")
+                    connection.doOutput = true
+
+                    val outputStream: OutputStream = connection.outputStream
+                    outputStream.write(fhirJson.toByteArray(Charsets.UTF_8))
+                    outputStream.flush()
+                    outputStream.close()
+
+                    val responseCode = connection.responseCode
+                    val responseMessage = connection.inputStream.bufferedReader().readText()
+
+                    Log.d("FHIR_SUBMIT", "Response: $responseCode - $responseMessage")
+
+                    runOnUiThread {
+                        Toast.makeText(
+                            this@MainActivity,
+                            "Submission successful! ($responseCode)",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+
+                } catch (e: Exception) {
+                    Log.e("FHIR_SUBMIT", "Submission failed", e)
+                    runOnUiThread {
+                        Toast.makeText(
+                            this@MainActivity,
+                            "Submission failed: ${e.message}",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                }
+            }.start()
         }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Enable WebView debugging for console logs (only in debug mode or SDK >= KITKAT)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             WebView.setWebContentsDebuggingEnabled(true)
         }

@@ -14,23 +14,7 @@
 <script src="lformsFHIR.min.js"></script>
 
 <script>
-  const BASE_QUESTIONNAIRE_URL = "https://appassets.androidplatform.net/assets/questionnaires";
-
-  function loadLocalJson(path, callback) {
-    const xhr = new XMLHttpRequest();
-    xhr.overrideMimeType("application/json");
-    xhr.open('GET', path, true);
-    xhr.onreadystatechange = function () {
-      if (xhr.readyState === 4) {
-        if (xhr.status == 200 || xhr.status === 0) {
-          callback(JSON.parse(xhr.responseText));
-        } else {
-          console.error("Failed to load JSON from:", path, "Status:", xhr.status);
-        }
-      }
-    };
-    xhr.send(null);
-  }
+  const BASE_QUESTIONNAIRE_URL = "./questionnaires";
 
   function injectExpansionFromCompose(valueSet) {
     if (!valueSet.expansion && valueSet.compose?.include?.length) {
@@ -47,25 +31,38 @@
     }
   }
 
-  function collectAnswers(items, answeredItems = []) {
-    items.forEach(item => {
-      if (item.value !== undefined && item.value !== null && item.value !== '') {
+  function getTextFromQuestionnaireItem(linkId, originalItems) {
+    const item = originalItems.find(i => i.linkId === linkId);
+    return item ? item.text : linkId;
+  }
+
+  function collectAnswers(userItems, originalItems, answeredItems = []) {
+    userItems.forEach(userItem => {
+      const match = originalItems.find(orig => orig.linkId === userItem.linkId);
+
+      if (userItem.value !== undefined && userItem.value !== null && userItem.value !== '') {
         answeredItems.push({
-          code: item.questionCode,
-          value: item.value
+          code: userItem.linkId,
+          value: userItem.value,
+          text: getTextFromQuestionnaireItem(userItem.linkId, originalItems)
         });
       }
-      if (item.items && item.items.length > 0) {
-        collectAnswers(item.items, answeredItems);
+
+      if (userItem.items && userItem.items.length > 0 && match?.items) {
+        collectAnswers(userItem.items, match.items, answeredItems);
       }
     });
     return answeredItems;
   }
 
-  document.addEventListener('DOMContentLoaded', function () {
-    loadLocalJson(`${BASE_QUESTIONNAIRE_URL}/questionnaire1-schema.json`, function (parentQ) {
-      loadLocalJson(`${BASE_QUESTIONNAIRE_URL}/questionnaire2-schema.json`, function (childQ) {
+  let lfData;
 
+  document.addEventListener('DOMContentLoaded', function () {
+    Promise.all([
+      fetch(`${BASE_QUESTIONNAIRE_URL}/questionnaire1-schema.json`).then(res => res.json()),
+      fetch(`${BASE_QUESTIONNAIRE_URL}/questionnaire2-schema.json`).then(res => res.json())
+    ])
+      .then(([parentQ, childQ]) => {
         if (parentQ.contained) {
           for (let res of parentQ.contained) {
             if (res.resourceType === 'ValueSet') {
@@ -80,73 +77,105 @@
         }
 
         LForms.Util.setFHIRContext(parentQ);
-        const lfData = LForms.Util.convertFHIRQuestionnaireToLForms(parentQ, 'R5');
+        lfData = LForms.Util.convertFHIRQuestionnaireToLForms(parentQ, 'R5');
         LForms.Util.addFormToPage(lfData, 'myFormContainer');
 
         const submitBtn = document.createElement('button');
         submitBtn.type = 'button';
         submitBtn.innerText = 'Submit Form';
-        submitBtn.style.marginTop = '1em';
+        submitBtn.classList.add('btn', 'btn-primary');
         document.getElementById('myFormContainer').appendChild(submitBtn);
 
         submitBtn.addEventListener('click', function () {
           try {
             const formElement = document.querySelector('#myFormContainer > div');
-            const formData = LForms.Util.getFormData(formElement);
-            const answeredItems = collectAnswers(formData.items || []);
-            console.log('Answered items:', JSON.stringify(answeredItems, null, 2));
-
-            sendDataToWhatsApp(answeredItems);
+            sendDataToServer(formElement);
           } catch (error) {
-            console.error('Error collecting form data:', error);
+            console.error('Error gathering form data:', error);
           }
         });
+      })
+      .catch(error => {
+        console.error('Error loading questionnaires:', error);
       });
-    });
   });
 
-  function sendDataToWhatsApp(data) {
-    const formattedData = {};
+  function sendDataToServer(theFormElement) {
+    const userData = LForms.Util.getUserData(theFormElement, 'QuestionnaireResponse', 'R5');
+    const itemsData = userData.itemsData;
 
-    data.forEach(item => {
-      let value;
+    if (Array.isArray(itemsData)) {
+      const questionnaireResponse = transformToFHIRQuestionnaireResponse(itemsData);
 
-      if (Array.isArray(item.value)) {
-        value = item.value.map(val => {
-          if (typeof val === 'object' && val.code && val.system) {
-            return {
-              code: val.code,
-              display: val.display || '',
-              system: val.system
-            };
-          }
-          return val;
-        });
-      } else if (typeof item.value === 'object' && item.value.code && item.value.system) {
-        value = {
-          code: item.value.code,
-          display: item.value.display || '',
-          system: item.value.system
-        };
+      // ✅ Use AndroidInterface instead of fetch to bypass CORS and Mixed Content restrictions
+      if (window.AndroidInterface && typeof window.AndroidInterface.submitFHIR === "function") {
+        window.AndroidInterface.submitFHIR(JSON.stringify(questionnaireResponse));
+        console.log("Submitted to AndroidInterface");
       } else {
-        value = item.value;
+        console.error("AndroidInterface not available");
       }
 
-      formattedData[item.code] = {
-        value: value
-      };
-    });
-
-    const jsonMessage = JSON.stringify(formattedData, null, 2);
-    const phoneNumber = '27832791564';
-    const encodedMessage = encodeURIComponent("Form Submission:\n" + jsonMessage);
-    const whatsappURL = `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${encodedMessage}`;
-
-    if (window.AndroidInterface) {
-      window.AndroidInterface.openWhatsApp(whatsappURL);
     } else {
-      alert('Android interface not available.');
+      console.error('Expected itemsData to be an array, but got:', typeof itemsData);
     }
+  }
+
+  function transformToFHIRQuestionnaireResponse(itemsData) {
+    const questionnaireResponse = {
+      resourceType: "QuestionnaireResponse",
+      status: "completed",
+      authored: new Date().toISOString(),
+      item: []
+    };
+
+    const seenLinkIds = new Set();
+
+    function processItem(item) {
+      if (!item || !item.questionCode || seenLinkIds.has(item.questionCode)) {
+        return null;
+      }
+      seenLinkIds.add(item.questionCode);
+
+      if (item.items && Array.isArray(item.items)) {
+        const groupItem = {
+          linkId: item.questionCode,
+          item: item.items.map(processItem).filter(Boolean)
+        };
+        return groupItem;
+      }
+
+      const responseItem = {
+        linkId: item.questionCode,
+        answer: []
+      };
+
+      const val = item.value;
+
+      if (val && typeof val === 'object' && val.code && val.system) {
+        responseItem.answer.push({
+          valueCoding: {
+            code: val.code,
+            system: val.system,
+            display: val.text
+          }
+        });
+      } else if (typeof val === 'string') {
+        responseItem.answer.push({ valueString: val });
+      } else if (typeof val === 'boolean') {
+        responseItem.answer.push({ valueBoolean: val });
+      } else if (typeof val === 'number') {
+        responseItem.answer.push({ valueInteger: val });
+      } else if (val instanceof Date) {
+        responseItem.answer.push({ valueDate: val.toISOString().split('T')[0] });
+      } else {
+        return null;
+      }
+
+      return responseItem;
+    }
+
+    questionnaireResponse.item = itemsData.map(processItem).filter(Boolean);
+    return questionnaireResponse;
   }
 </script>
 </body>
