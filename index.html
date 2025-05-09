@@ -150,32 +150,133 @@
     }
 
     // Function to transform the user data into a valid FHIR QuestionnaireResponse format
+    function processItem(item) {
+      if (!item || !item.questionCode) {
+        console.error('Invalid item:', item);
+        return null;
+      }
+
+      // If it's a group, recurse into its items
+      if (item.type === 'group' || item.items) {
+        const groupItem = {
+          linkId: item.questionCode,
+          item: []
+        };
+
+        if (item.items && Array.isArray(item.items)) {
+          for (const child of item.items) {
+            const processedChild = processItem(child);
+            if (processedChild) {
+              groupItem.item.push(processedChild);
+            }
+          }
+        }
+
+        return groupItem;
+      }
+
+      // Otherwise, it's a regular question with a value
+      const responseItem = {
+        linkId: item.questionCode,
+        answer: []
+      };
+
+      const val = item.value;
+
+      if (val && typeof val === 'object' && val.code && val.system) {
+        responseItem.answer.push({
+          valueCoding: {
+            code: val.code,
+            system: val.system,
+            display: val.text
+          }
+        });
+      } else if (typeof val === 'string') {
+        responseItem.answer.push({ valueString: val });
+      } else if (typeof val === 'boolean') {
+        responseItem.answer.push({ valueBoolean: val });
+      } else if (typeof val === 'number') {
+        responseItem.answer.push({ valueInteger: val });
+      } else if (val instanceof Date) {
+        responseItem.answer.push({ valueDate: val.toISOString().split('T')[0] });
+      } else {
+        console.warn('Unrecognized or missing value for item:', item);
+        return null;
+      }
+
+      return responseItem;
+    }
+
+
     function transformToFHIRQuestionnaireResponse(itemsData) {
       const questionnaireResponse = {
         resourceType: "QuestionnaireResponse",
-        status: "completed", // Or "in-progress" if not submitted yet
-        authored: new Date().toISOString(), // Current timestamp
-        item: [] // Array to hold the individual items in the response
+        status: "completed",
+        authored: new Date().toISOString(),
+        item: []
       };
 
-      itemsData.forEach(item => {
-        const answer = {
-          valueCoding: {
-            code: item.value.code,
-            display: item.value.text,
-            system: item.value.system
-          }
+      const seenLinkIds = new Set();
+
+      function processItem(item) {
+        if (!item || !item.questionCode || seenLinkIds.has(item.questionCode)) {
+          return null; // Skip if already processed
+        }
+        seenLinkIds.add(item.questionCode);
+
+        if (item.items && Array.isArray(item.items)) {
+          const groupItem = {
+            linkId: item.questionCode,
+            item: item.items
+              .map(processItem)
+              .filter(Boolean)
+          };
+          return groupItem;
+        }
+
+        const responseItem = {
+          linkId: item.questionCode,
+          answer: []
         };
 
-        // Add this item to the 'item' array in the QuestionnaireResponse
-        questionnaireResponse.item.push({
-          linkId: item.questionCode,  // Use questionCode as the linkId
-          answer: [answer]
-        });
-      });
+        const val = item.value;
+
+        if (val && typeof val === 'object' && val.code && val.system) {
+          responseItem.answer.push({
+            valueCoding: {
+              code: val.code,
+              system: val.system,
+              display: val.text
+            }
+          });
+        } else if (typeof val === 'string') {
+          responseItem.answer.push({ valueString: val });
+        } else if (typeof val === 'boolean') {
+          responseItem.answer.push({ valueBoolean: val });
+        } else if (typeof val === 'number') {
+          responseItem.answer.push({ valueInteger: val });
+        } else if (val instanceof Date) {
+          responseItem.answer.push({ valueDate: val.toISOString().split('T')[0] });
+        } else {
+          return null;
+        }
+
+        return responseItem;
+      }
+
+      questionnaireResponse.item = itemsData
+        .map(processItem)
+        .filter(Boolean);
 
       return questionnaireResponse;
     }
+
+
+
+
+
+
+
   </script>
 </body>
 
