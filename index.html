@@ -112,27 +112,69 @@
     });
 
     function sendDataToServer(theFormElement) {
-      const questionnaireResponse = LForms.Util.getFormData(theFormElement, 'QuestionnaireResponse', 'R5');
+      const userData = LForms.Util.getUserData(theFormElement, 'QuestionnaireResponse', 'R5');
 
-      const username = 'RichardTestClient'; // your actual client ID
-      const password = 'OpenHIM123!'; // your actual password
-      const basicAuth = 'Basic ' + btoa(username + ':' + password);
+      // Log userData to inspect the structure
+      console.log('userData:', userData);
 
-      fetch('https://localhost:8080/provider', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': basicAuth
-        },
-        body: JSON.stringify(questionnaireResponse)
-      })
-        .then(async response => {
-          const text = await response.text();
-          if (!response.ok) throw new Error(`HTTP ${response.status} - ${text}`);
-          return text;
+      // Access the actual itemsData array inside the object
+      const itemsData = userData.itemsData;
+
+      // Log itemsData to verify it's an array
+      console.log('itemsData:', itemsData);
+
+      if (Array.isArray(itemsData)) {
+        // If itemsData is an array, proceed with transformation
+        const questionnaireResponse = transformToFHIRQuestionnaireResponse(itemsData);
+
+        // Send the QuestionnaireResponse to the FHIR server
+        fetch('http://localhost:5001/fhir', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/fhir+json',
+            'Authorization': 'Custom auth'
+          },
+          body: JSON.stringify(questionnaireResponse)
         })
-        .then(data => console.log('Submission successful:', data))
-        .catch(error => console.error('Error submitting:', error));
+          .then(async response => {
+            const text = await response.text();
+            if (!response.ok) throw new Error(`HTTP ${response.status} - ${text}`);
+            return text;
+          })
+          .then(data => console.log('Submission successful:', data))
+          .catch(error => console.error('Error submitting:', error));
+      } else {
+        console.error('Expected itemsData to be an array, but got:', typeof itemsData);
+        // Handle the case where itemsData is not an array (if necessary)
+      }
+    }
+
+    // Function to transform the user data into a valid FHIR QuestionnaireResponse format
+    function transformToFHIRQuestionnaireResponse(itemsData) {
+      const questionnaireResponse = {
+        resourceType: "QuestionnaireResponse",
+        status: "completed", // Or "in-progress" if not submitted yet
+        authored: new Date().toISOString(), // Current timestamp
+        item: [] // Array to hold the individual items in the response
+      };
+
+      itemsData.forEach(item => {
+        const answer = {
+          valueCoding: {
+            code: item.value.code,
+            display: item.value.text,
+            system: item.value.system
+          }
+        };
+
+        // Add this item to the 'item' array in the QuestionnaireResponse
+        questionnaireResponse.item.push({
+          linkId: item.questionCode,  // Use questionCode as the linkId
+          answer: [answer]
+        });
+      });
+
+      return questionnaireResponse;
     }
   </script>
 </body>
