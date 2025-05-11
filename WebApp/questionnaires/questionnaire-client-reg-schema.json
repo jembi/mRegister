@@ -62,14 +62,6 @@
                 "display": "Male"
               },
               {
-                "code": "HIV.A.DE21",
-                "display": "Transgender male"
-              },
-              {
-                "code": "HIV.A.DE22",
-                "display": "Transgender female"
-              },
-              {
                 "code": "HIV.A.DE23",
                 "display": "Other"
               }
