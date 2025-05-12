@@ -1,0 +1,18 @@
+/* Style the button */
+.btn-primary {
+    padding: 12px 30px;
+    font-size: 16px;
+    font-weight: bold;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    display: block;  /* Make button a block element */
+    margin: 20px auto; /* Center button horizontally */
+}
+
+/* Hover state for the button */
+.btn-primary:hover {
+    background-color: #0056b3;
+}

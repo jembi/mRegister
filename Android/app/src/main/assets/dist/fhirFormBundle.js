@@ -85,13 +85,27 @@
     }
 
     addSubmitButton() {
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.textContent = "Submit Form";
-      btn.classList.add("btn", "btn-primary");
-      btn.addEventListener("click", () => this.handleSubmit());
-      document.getElementById(this.containerId).appendChild(btn);
+        // Directly create the button without the wrapper
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.textContent = "Submit Form";
+        btn.classList.add("btn", "btn-primary");
+
+        // Add the submit button's event listener
+        btn.addEventListener("click", () => this.handleSubmit());
+
+        // Get the container and make sure it exists
+        const container = document.getElementById(this.containerId);
+        if (container) {
+            // Add the button directly to the container
+            container.appendChild(btn);
+            console.log("Submit button added to container.");
+        } else {
+            console.error("Container not found.");
+        }
     }
+
+
 
     async handleSubmit() {
       try {
