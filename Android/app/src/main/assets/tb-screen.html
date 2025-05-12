@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TB Screening</title>
+  <link href="styles.css" rel="stylesheet" />
+</head>
+
+<body>
+  <div id="myFormContainer"></div>
+
+  <script src="zone.min.js"></script>
+  <script src="lhc-forms.js"></script>
+  <script src="lformsFHIR.min.js"></script>
+  <script src="dist/fhirFormBundle.js"></script>
+
+  <script>
+    window.addEventListener('load', function () {
+      try {
+        const formHandler = new FHIRFormHandler(
+          'myFormContainer',
+          './questionnaires/questionnaire1-schema.json',
+          [
+            { url: './questionnaires/questionnaire2-schema.json', linkId: 'HIV.D4ScreenForTb.History' }
+          ],
+          'http://192.168.100.11:5001/fhir'
+        );
+
+        formHandler.init().catch(err => {
+          console.error("Error during form initialization:", err);
+          alert("Failed to load form. Please try again later.");
+        });
+      } catch (err) {
+        console.error("Error creating FHIRFormHandler:", err);
+        alert("Failed to set up form handler. Please check the configuration.");
+      }
+    });
+  </script>
+</body>
+
+</html>
