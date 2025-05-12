@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Client Registration</title>
+  <link href="styles.css" rel="stylesheet" />
+</head>
+
+<body>
+  <div id="myFormContainer"></div>
+
+  <script src="zone.min.js"></script>
+  <script src="lhc-forms.js"></script>
+  <script src="lformsFHIR.min.js"></script>
+
+  <script type="module">
+    import { FHIRFormHandler } from 'https://appassets.androidplatform.net/assets/modules/fhirFormModule.js';
+
+    const FHIR_ENDPOINT = 'http://192.168.100.21:5001/fhir';
+
+    const formHandler = new FHIRFormHandler(
+      'myFormContainer',
+      'https://appassets.androidplatform.net/assets/questionnaires/questionnaire-client-reg-schema.json',
+      [],
+      FHIR_ENDPOINT
+    );
+
+    formHandler.init();
+  </script>
+</body>
+
+</html>

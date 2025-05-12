@@ -68,6 +68,7 @@ class MainActivity : AppCompatActivity() {
         val webView = WebView(this)
         setContentView(webView)
 
+        // Initialize the WebViewAssetLoader to load local assets
         val assetLoader = WebViewAssetLoader.Builder()
             .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(this))
             .build()
@@ -77,8 +78,10 @@ class MainActivity : AppCompatActivity() {
                 assetLoader.shouldInterceptRequest(request.url)
         }
 
+        // Enable JavaScript in WebView
         webView.settings.javaScriptEnabled = true
 
+        // Set a WebChromeClient to log console messages from JavaScript
         webView.webChromeClient = object : WebChromeClient() {
             override fun onConsoleMessage(consoleMessage: ConsoleMessage): Boolean {
                 Log.d(
@@ -89,8 +92,10 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        // Add the JavaScript interface for the submitFHIR function
         webView.addJavascriptInterface(WebAppInterface(), "AndroidInterface")
 
-        webView.loadUrl("https://appassets.androidplatform.net/assets/index.html")
+        // Load the HTML file from the assets folder
+        webView.loadUrl("https://appassets.androidplatform.net/assets/register-client.html")
     }
 }

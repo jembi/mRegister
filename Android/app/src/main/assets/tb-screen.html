@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>TB Screening</title>
+  <link href="styles.css" rel="stylesheet" />
+</head>
+
+<body>
+  <div id="myFormContainer"></div>
+
+  <script src="zone.min.js"></script>
+  <script src="lhc-forms.js"></script>
+  <script src="lformsFHIR.min.js"></script>
+
+  <script type="module">
+    import { FHIRFormHandler } from './modules/fhirFormModule.js';
+
+    const formHandler = new FHIRFormHandler(
+      'myFormContainer',
+      './questionnaires/questionnaire1-schema.json',
+      [
+        { url: './questionnaires/questionnaire2-schema.json', linkId: 'HIV.D4ScreenForTb.History' }
+      ],
+      'http://localhost:5001/fhir'
+    );
+
+    formHandler.init();
+  </script>
+</body>
+
+</html>
