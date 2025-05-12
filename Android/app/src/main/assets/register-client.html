@@ -1,32 +1,42 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Client Registration</title>
   <link href="styles.css" rel="stylesheet" />
 </head>
 
 <body>
-  <div id="myFormContainer"></div>
+<div id="myFormContainer"></div>
 
-  <script src="zone.min.js"></script>
-  <script src="lhc-forms.js"></script>
-  <script src="lformsFHIR.min.js"></script>
+<!-- Load dependencies -->
+<script src="zone.min.js"></script>
+<script src="lhc-forms.js"></script>
+<script src="lformsFHIR.min.js"></script>
+<script src="dist/fhirFormBundle.js"></script>
 
-  <script type="module">
-    import { FHIRFormHandler } from 'https://appassets.androidplatform.net/assets/modules/fhirFormModule.js';
+<script>
+  window.addEventListener('load', function () {
+    try {
+      const formHandler = new FHIRFormHandler(
+        'myFormContainer',
+        'https://appassets.androidplatform.net/assets/questionnaires/questionnaire-client-reg-schema.json',
+        [],
+        'http://192.168.100.11:5001/fhir'
+      );
 
-    const FHIR_ENDPOINT = 'http://192.168.100.21:5001/fhir';
-
-    const formHandler = new FHIRFormHandler(
-      'myFormContainer',
-      'https://appassets.androidplatform.net/assets/questionnaires/questionnaire-client-reg-schema.json',
-      [],
-      FHIR_ENDPOINT
-    );
-
-    formHandler.init();
-  </script>
+      formHandler.init().catch(err => {
+        console.error("Error during form initialization:", err);
+        alert("Failed to load form. Please try again later.");
+      });
+    } catch (err) {
+      console.error("Error creating FHIRFormHandler:", err);
+      alert("Failed to set up form handler. Please check the configuration.");
+    }
+  });
+</script>
 </body>
 
 </html>

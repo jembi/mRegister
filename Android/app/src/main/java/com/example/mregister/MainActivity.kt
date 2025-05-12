@@ -16,42 +16,30 @@ class MainActivity : AppCompatActivity() {
     inner class WebAppInterface {
 
         @JavascriptInterface
-        fun submitFHIR(fhirJson: String) {
+        fun submitFHIR(fhirJson: String, fhirUrl: String) {
             Thread {
                 try {
-                    val url = URL("http://192.168.100.21:5001/fhir")
+                    val url = URL(fhirUrl) // use the dynamic URL passed in
                     val connection = url.openConnection() as HttpURLConnection
                     connection.requestMethod = "POST"
                     connection.setRequestProperty("Content-Type", "application/fhir+json")
                     connection.setRequestProperty("Authorization", "Custom auth")
                     connection.doOutput = true
 
-                    val outputStream: OutputStream = connection.outputStream
-                    outputStream.write(fhirJson.toByteArray(Charsets.UTF_8))
-                    outputStream.flush()
-                    outputStream.close()
-
-                    val responseCode = connection.responseCode
-                    val responseMessage = connection.inputStream.bufferedReader().readText()
-
-                    Log.d("FHIR_SUBMIT", "Response: $responseCode - $responseMessage")
-
-                    runOnUiThread {
-                        Toast.makeText(
-                            this@MainActivity,
-                            "Submission successful! ($responseCode)",
-                            Toast.LENGTH_LONG
-                        ).show()
+                    connection.outputStream.use {
+                        it.write(fhirJson.toByteArray(Charsets.UTF_8))
                     }
 
+                    val response = connection.inputStream.bufferedReader().readText()
+                    Log.d("FHIR_SUBMIT", "Response: ${connection.responseCode} - $response")
+
+                    runOnUiThread {
+                        Toast.makeText(this@MainActivity, "Success: ${connection.responseCode}", Toast.LENGTH_SHORT).show()
+                    }
                 } catch (e: Exception) {
                     Log.e("FHIR_SUBMIT", "Submission failed", e)
                     runOnUiThread {
-                        Toast.makeText(
-                            this@MainActivity,
-                            "Submission failed: ${e.message}",
-                            Toast.LENGTH_LONG
-                        ).show()
+                        Toast.makeText(this@MainActivity, "Submission failed: ${e.message}", Toast.LENGTH_LONG).show()
                     }
                 }
             }.start()
@@ -61,6 +49,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // Enable debugging for WebView
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             WebView.setWebContentsDebuggingEnabled(true)
         }
@@ -68,20 +57,33 @@ class MainActivity : AppCompatActivity() {
         val webView = WebView(this)
         setContentView(webView)
 
-        // Initialize the WebViewAssetLoader to load local assets
+        // Set up WebViewAssetLoader to serve assets from local paths via HTTPS
         val assetLoader = WebViewAssetLoader.Builder()
             .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(this))
             .build()
 
         webView.webViewClient = object : WebViewClient() {
-            override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest) =
-                assetLoader.shouldInterceptRequest(request.url)
+            override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
+                return assetLoader.shouldInterceptRequest(request.url)
+            }
+
+            override fun onReceivedError(
+                view: WebView,
+                request: WebResourceRequest,
+                error: WebResourceError
+            ) {
+                Log.e("WebViewError", "Error: ${error.description}")
+                super.onReceivedError(view, request, error)
+            }
         }
 
-        // Enable JavaScript in WebView
-        webView.settings.javaScriptEnabled = true
+        webView.settings.apply {
+            javaScriptEnabled = true
+            domStorageEnabled = true
+            allowFileAccess = false // prevent file:// access
+            allowContentAccess = true
+        }
 
-        // Set a WebChromeClient to log console messages from JavaScript
         webView.webChromeClient = object : WebChromeClient() {
             override fun onConsoleMessage(consoleMessage: ConsoleMessage): Boolean {
                 Log.d(
@@ -92,10 +94,10 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // Add the JavaScript interface for the submitFHIR function
+        // Add the interface for JS <-> Android communication
         webView.addJavascriptInterface(WebAppInterface(), "AndroidInterface")
 
-        // Load the HTML file from the assets folder
-        webView.loadUrl("https://appassets.androidplatform.net/assets/register-client.html")
+        // Load the main HTML page from assets
+        webView.loadUrl("https://appassets.androidplatform.net/assets/tb-screen.html")
     }
 }
