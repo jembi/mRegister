@@ -23,6 +23,8 @@ class MainActivity : AppCompatActivity() {
                     val connection = url.openConnection() as HttpURLConnection
                     connection.requestMethod = "POST"
                     connection.setRequestProperty("Content-Type", "application/fhir+json")
+                    connection.setRequestProperty("Accept", "application/fhir+json")
+                    connection.setRequestProperty("Prefer", "return=representation")
                     connection.setRequestProperty("Authorization", "Custom auth")
                     connection.doOutput = true
 
@@ -98,6 +100,6 @@ class MainActivity : AppCompatActivity() {
         webView.addJavascriptInterface(WebAppInterface(), "AndroidInterface")
 
         // Load the main HTML page from assets
-        webView.loadUrl("https://appassets.androidplatform.net/assets/tb-screen.html")
+        webView.loadUrl("https://appassets.androidplatform.net/assets/register-client.html")
     }
 }
