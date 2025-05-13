@@ -1,7 +1,9 @@
-(function (global) {
+(function () {
   'use strict';
 
-  class FHIRFormHandler {
+  // app/src/main/assets/modules/fhirFormCommon.js
+
+  class FHIRFormHandlerBase {
     constructor(containerId, parentUrl, childConfig = [], fhirServerUrl) {
       this.containerId = containerId;
       this.parentUrl = parentUrl;
@@ -44,7 +46,6 @@
         LForms.Util.addFormToPage(this.lfData, this.containerId);
 
         this.addSubmitButton();
-
       } catch (error) {
         console.error("Failed to initialize form:", error);
       }
@@ -91,36 +92,6 @@
       btn.classList.add("btn", "btn-primary");
       btn.addEventListener("click", () => this.handleSubmit());
       document.getElementById(this.containerId).appendChild(btn);
-    }
-
-    async handleSubmit() {
-      try {
-        const formElement = document.querySelector(`#${this.containerId} > div`);
-        const userData = LForms.Util.getUserData(formElement, "QuestionnaireResponse", "R5");
-        const questionnaireResponse = this.transformToFHIR(userData.itemsData);
-
-        if (this.questionnaireCanonicalUrl) {
-          questionnaireResponse.questionnaire = this.questionnaireCanonicalUrl;
-        }
-
-        const fhirJson = JSON.stringify(questionnaireResponse);
-
-        if (
-          window.AndroidInterface &&
-          typeof window.AndroidInterface.submitFHIR === 'function'
-        ) {
-          // ✅ Now passing both the JSON and the FHIR URL
-          window.AndroidInterface.submitFHIR(fhirJson, this.fhirServerUrl);
-          console.log("Submitted via AndroidInterface to:", this.fhirServerUrl);
-        } else {
-          console.error("AndroidInterface not available");
-          alert("Submission failed: Android interface not available.");
-        }
-
-      } catch (error) {
-        console.error("Submission failed:", error);
-        alert("Submission error. Please try again.");
-      }
     }
 
     transformToFHIR(itemsData) {
@@ -173,8 +144,45 @@
       response.item = itemsData.map(process).filter(Boolean);
       return response;
     }
+
+    // To be implemented in subclass
+    async handleSubmit() {
+      throw new Error("handleSubmit must be implemented in the subclass.");
+    }
   }
 
-  global.FHIRFormHandler = FHIRFormHandler;
+  class FHIRFormHandler extends FHIRFormHandlerBase {
+    async handleSubmit() {
+      try {
+        const formElement = document.querySelector(`#${this.containerId} > div`);
+        const userData = LForms.Util.getUserData(formElement, "QuestionnaireResponse", "R5");
+        const questionnaireResponse = this.transformToFHIR(userData.itemsData);
 
-})(typeof window !== "undefined" ? window : this);
+        if (this.questionnaireCanonicalUrl) {
+          questionnaireResponse.questionnaire = this.questionnaireCanonicalUrl;
+        }
+
+        const fhirJson = JSON.stringify(questionnaireResponse);
+
+        if (
+          window.AndroidInterface &&
+          typeof window.AndroidInterface.submitFHIR === 'function'
+        ) {
+          window.AndroidInterface.submitFHIR(fhirJson, this.fhirServerUrl);
+          console.log("Submitted via AndroidInterface to:", this.fhirServerUrl);
+        } else {
+          console.error("AndroidInterface not available");
+          alert("Submission failed: Android interface not available.");
+        }
+      } catch (error) {
+        console.error("Submission failed:", error);
+        alert("Submission error. Please try again.");
+      }
+    }
+  }
+
+  (function (global) {
+    global.FHIRFormHandler = FHIRFormHandler;
+  })(typeof window !== 'undefined' ? window : undefined);
+
+})();

@@ -1,0 +1,8 @@
+# Node.js dependencies
+**/node_modules/
+
+# Optional: other common ignores
+.env
+dist/
+build/
+*.log
