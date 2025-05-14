@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TB Screening</title>
+
+  <!-- PWA: Manifest, Theme & Icons -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#3367D6" />
+  <link rel="icon" type="image/png" href="icon-192.png" sizes="192x192" />
+
+  <!-- CSS: Consider purging and minifying -->
+  <link href="styles.css" rel="stylesheet" />
+  <link href="app.css" rel="stylesheet" />
+</head>
+
+<body>
+  <div id="myFormContainer"></div>
+
+  <!-- JS Dependencies (deferred to avoid blocking) -->
+  <script src="zone.min.js" defer></script>
+  <script src="lhc-forms.js" defer></script>
+  <script src="lformsFHIR.min.js" defer></script>
+
+  <script type="module">
+    import { FHIRFormHandler } from './modules/fhirFormWeb.js';
+
+    // FHIRFormHandler initialization
+    import { FHIRFormHandler } from './modules/fhirFormWeb.js';
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      try {
+        const formHandler = new FHIRFormHandler(
+          'myFormContainer',
+          './questionnaires/questionnaire-client-reg-schema.json',
+          [
+            { url: './questionnaires/questionnaire2-schema.json', linkId: 'HIV.D4ScreenForTb.History' }
+          ],
+          'http://192.168.100.24:5001/fhir'
+        );
+
+        await formHandler.init();
+      } catch (err) {
+        console.error("Error initializing form:", err);
+        alert("Failed to load form. Please try again later.");
+      }
+    });
+  </script>
+</body>
+
+</html>

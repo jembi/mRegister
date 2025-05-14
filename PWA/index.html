@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>mRegister</title>
+
+  <!-- Manifest and theming -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#3367D6" />
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="icon-192.png" />
+</head>
+
+<body>
+  <h1>Welcome to mRegister</h1>
+  <nav>
+    <ul>
+      <li><a href="register-client.html">Register Client</a></li>
+      <li><a href="tb-screen.html">TB Screening</a></li>
+    </ul>
+  </nav>
+
+  <!-- Service Worker Registration -->
+  <script>
+     // Register service worker (PWA)
+     if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/PWA/service-worker.js', {
+          scope: '/PWA/'  // This ensures it controls the entire app from the root
+        })
+          .then(reg => console.log('Service Worker registered:', reg.scope))
+          .catch(err => console.error('Service Worker registration failed:', err));
+      }
+  </script>
+</body>
+
+</html>
