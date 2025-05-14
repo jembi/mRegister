@@ -28,7 +28,7 @@
     import { FHIRFormHandler } from './modules/fhirFormWeb.js';
     import { CONFIG } from './config.js';
 
-    const fhirServerUrl = `${CONFIG.fhirServerUrl}/QR-to-Patient`;
+    const openHIM = `${CONFIG.openHIM}/QR-to-Patient`;
 
     window.addEventListener('DOMContentLoaded', async () => {
       try {
@@ -37,10 +37,10 @@
           'myFormContainer',
           './questionnaires/questionnaire-client-reg-schema.json',
           [],
-          fhirServerUrl
+          openHIM
         );
 
-        window.__fhirServerUrl = fhirServerUrl;
+        window.__openHIM = openHIM;
 
         // Wait until form initialization is complete
         await formHandler.init();

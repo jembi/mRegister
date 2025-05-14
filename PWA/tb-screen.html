@@ -28,7 +28,7 @@
     import { FHIRFormHandler } from './modules/fhirFormWeb.js';
     import { CONFIG } from './config.js';
 
-    const fhirServerUrl = `${CONFIG.fhirServerUrl}/fhir`;
+    const openHIM = `${CONFIG.openHIM}/fhir`;
 
     window.addEventListener('DOMContentLoaded', async () => {
       try {
@@ -39,10 +39,10 @@
           [
             { url: './questionnaires/questionnaire2-schema.json', linkId: 'HIV.D4ScreenForTb.History' }
           ],
-          fhirServerUrl
+          openHIM
         );
 
-        window.__fhirServerUrl = fhirServerUrl;
+        window.__openHIM = openHIM;
 
         // Wait until form initialization is complete
         await formHandler.init();

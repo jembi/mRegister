@@ -1,3 +1,3 @@
 export const CONFIG = {
-    fhirServerUrl: 'http://192.168.100.23:5001'
+    openHIM: 'http://192.168.100.24:5001'
   }

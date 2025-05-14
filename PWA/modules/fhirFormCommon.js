@@ -1,11 +1,11 @@
 // app/src/main/assets/modules/fhirFormCommon.js
 
 export class FHIRFormHandlerBase {
-  constructor(containerId, parentUrl, childConfig = [], fhirServerUrl) {
+  constructor(containerId, parentUrl, childConfig = [], openHIM) {
     this.containerId = containerId;
     this.parentUrl = parentUrl;
     this.childConfig = childConfig;
-    this.fhirServerUrl = fhirServerUrl;
+    this.openHIM = openHIM;
     this.lfData = null;
     this.questionnaireCanonicalUrl = null;
   }
