@@ -26,8 +26,9 @@
 
   <script type="module">
     import { FHIRFormHandler } from './modules/fhirFormWeb.js';
+    import { CONFIG } from './config.js';
 
-    const fhirServerUrl = 'http://192.168.100.24:5001/QR-to-Patient';
+    const fhirServerUrl = `${CONFIG.fhirServerUrl}/QR-to-Patient`;
 
     window.addEventListener('DOMContentLoaded', async () => {
       try {

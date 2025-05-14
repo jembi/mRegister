@@ -26,8 +26,9 @@
 
   <script type="module">
     import { FHIRFormHandler } from './modules/fhirFormWeb.js';
+    import { CONFIG } from './config.js';
 
-    const fhirServerUrl = 'http://192.168.100.24:5001/QR-to-Patient';
+    const fhirServerUrl = `${CONFIG.fhirServerUrl}/fhir`;
 
     window.addEventListener('DOMContentLoaded', async () => {
       try {
@@ -38,7 +39,7 @@
           [
             { url: './questionnaires/questionnaire2-schema.json', linkId: 'HIV.D4ScreenForTb.History' }
           ],
-          'http://192.168.100.24:5001/fhir'
+          fhirServerUrl
         );
 
         window.__fhirServerUrl = fhirServerUrl;

@@ -2,7 +2,7 @@ import {
   saveToQueue,
   getAllQueued,
   deleteFromQueue
-} from './idb.js';
+} from '../idb.js';
 
 import { FHIRFormHandlerBase } from './fhirFormCommon.js';
 
