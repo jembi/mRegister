@@ -8,11 +8,39 @@
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    display: block;  /* Make button a block element */
-    margin: 20px auto; /* Center button horizontally */
+    display: block;
+    /* Make button a block element */
+    margin: 20px auto;
+    /* Center button horizontally */
 }
 
 /* Hover state for the button */
 .btn-primary:hover {
     background-color: #0056b3;
 }
+
+/* styles.css */
+
+/* Center the container of the form */
+#myFormContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* This will center everything inside myFormContainer */
+    justify-content: flex-start; /* Align elements at the top */
+    width: 100%;
+  }
+  
+  /* Network status styling */
+  #netStatus {
+    margin-bottom: 10px;
+    padding: 4px 8px;
+    background-color: #f0f0f0;
+    border-radius: 4px;
+    font-weight: bold;
+    color: #333;
+    display: inline-block;
+    text-align: center; /* Ensure text inside the status is centered */
+    width: 100%; /* Make the status bar span the entire width */
+    max-width: 400px; /* Optional: to limit the width of the status bar */
+  }
+  

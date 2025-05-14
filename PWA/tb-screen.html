@@ -27,21 +27,25 @@
   <script type="module">
     import { FHIRFormHandler } from './modules/fhirFormWeb.js';
 
-    // FHIRFormHandler initialization
-    import { FHIRFormHandler } from './modules/fhirFormWeb.js';
+    const fhirServerUrl = 'http://192.168.100.24:5001/QR-to-Patient';
 
     window.addEventListener('DOMContentLoaded', async () => {
       try {
+        // Initialize the form handler
         const formHandler = new FHIRFormHandler(
           'myFormContainer',
-          './questionnaires/questionnaire-client-reg-schema.json',
+          './questionnaires/questionnaire1-schema.json',
           [
             { url: './questionnaires/questionnaire2-schema.json', linkId: 'HIV.D4ScreenForTb.History' }
           ],
           'http://192.168.100.24:5001/fhir'
         );
 
+        window.__fhirServerUrl = fhirServerUrl;
+
+        // Wait until form initialization is complete
         await formHandler.init();
+
       } catch (err) {
         console.error("Error initializing form:", err);
         alert("Failed to load form. Please try again later.");

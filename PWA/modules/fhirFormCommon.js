@@ -43,6 +43,7 @@ export class FHIRFormHandlerBase {
       LForms.Util.addFormToPage(this.lfData, this.containerId);
 
       this.addSubmitButton();
+      
     } catch (error) {
       console.error("Failed to initialize form:", error);
     }

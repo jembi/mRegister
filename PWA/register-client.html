@@ -17,16 +17,6 @@
 </head>
 
 <body>
-  <div id="netStatus" style="
-  position: fixed;
-  top: 10px;
-  right: 10px;
-  background-color: #f0f0f0;
-  padding: 3px 5px;
-  border-radius: 4px;
-  font-weight: bold;
-  z-index: 9999;"></div>
-
   <div id="myFormContainer"></div>
 
   <!-- JS Dependencies (deferred to avoid blocking) -->
@@ -35,29 +25,13 @@
   <script src="lformsFHIR.min.js" defer></script>
 
   <script type="module">
-    function updateStatus(isOnline) {
-      const statusEl = document.getElementById("netStatus");
-      if (statusEl) {
-        statusEl.textContent = isOnline ? "🟢 Online" : "🔴 Offline";
-        statusEl.style.backgroundColor = isOnline ? "#d4edda" : "#f8d7da";
-        statusEl.style.color = isOnline ? "#155724" : "#721c24";
-      }
-    }
-
-    window.addEventListener("online", () => updateStatus(true));
-    window.addEventListener("offline", () => updateStatus(false));
-
-    // Initial status on load
-    updateStatus(navigator.onLine);
-
-    
-    // FHIRFormHandler initialization
     import { FHIRFormHandler } from './modules/fhirFormWeb.js';
 
     const fhirServerUrl = 'http://192.168.100.24:5001/QR-to-Patient';
 
     window.addEventListener('DOMContentLoaded', async () => {
       try {
+        // Initialize the form handler
         const formHandler = new FHIRFormHandler(
           'myFormContainer',
           './questionnaires/questionnaire-client-reg-schema.json',
@@ -67,7 +41,9 @@
 
         window.__fhirServerUrl = fhirServerUrl;
 
+        // Wait until form initialization is complete
         await formHandler.init();
+
       } catch (err) {
         console.error("Error initializing form:", err);
         alert("Failed to load form. Please try again later.");

@@ -1,4 +1,4 @@
-const CACHE_NAME = "mRegister-cache-v12";
+const CACHE_NAME = "mRegister-cache-v14";
 const CACHE_FILES = [
   "/",
   "/PWA/manifest.json",
