@@ -48,7 +48,6 @@ android {
 }
 
 dependencies {
-    // ✅ Core desugaring for Java 8+ features like java.time.*
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
 
     // Jetpack Compose
@@ -56,10 +55,13 @@ dependencies {
     implementation("androidx.compose.material3:material3:1.0.0")
     implementation("androidx.activity:activity-compose:1.6.0")
 
-    // Google FHIR Data Capture
+    // Google FHIR SDK (only this is available)
     implementation("com.google.android.fhir:data-capture:1.3.0")
 
-    // AndroidX Support Libraries
+    // AndroidX
     implementation("androidx.fragment:fragment-ktx:1.8.6")
     implementation("androidx.appcompat:appcompat:1.7.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.1")
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.5.1")
 }
+

@@ -21,10 +21,9 @@ buildscript {
         classpath("com.android.tools.build:gradle:8.10.0") // Ensure compatibility with Android plugin version
 
         // Kotlin plugin version
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.10") // Kotlin Gradle plugin version
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.0") // Kotlin Gradle plugin version
 
-        // Compose Compiler plugin for Kotlin 2.0 compatibility
-        classpath("androidx.compose.compiler:compiler:1.5.0")
+
     }
 }
 

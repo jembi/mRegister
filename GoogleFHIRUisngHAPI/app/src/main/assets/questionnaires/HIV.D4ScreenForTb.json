@@ -95,12 +95,30 @@
     },
     {
       "linkId": "HIV.D4ScreenForTb.History",
+      "text": "Contact History",
       "type": "group",
       "enableWhen": [
         {
           "question": "HIV.D.DE985",
           "operator": "=",
           "answerBoolean": true
+        }
+      ],
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/questionnaire-item-control",
+                "code": "list"
+              }
+            ]
+          }
+        },
+        {
+          "url": "http://smart.who.int/fhir/StructureDefinition/questionnaire-localAsset",
+          "valueUrl": "asset://questionnaires/HIV.D4ScreenForTb.History.json"
         }
       ]
     },
